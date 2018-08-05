@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-    product: { 
+    product: {
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Product' 
+        ref: 'Product',
+        required: true
     },
     quantity: {
         type: Number,
