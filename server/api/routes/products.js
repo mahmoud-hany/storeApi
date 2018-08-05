@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const checkAuth = require('../middleware/check-auth');
 
 const _ = require('lodash');  
 
@@ -30,7 +31,7 @@ const upload = multer({
 const { Product } = require('../models/product');
 
 // create products
-router.post('/', upload.single('imgUrl'), (req, res) => {
+router.post('/', checkAuth, upload.single('imgUrl'), (req, res) => {
 
     console.log(req.file); // chek this to see what Data i need to edit or pick
 
@@ -41,7 +42,11 @@ router.post('/', upload.single('imgUrl'), (req, res) => {
     });
 
     newProduct.save().then(one => {
-        res.send(one);
+        res.json({
+            message: 'producted created succesfuly',
+            one,
+            status: "OK"
+        });
 
     }).catch(err => {
         res.status(400).send(err);
@@ -101,7 +106,7 @@ router.get('/:productId', (req, res) => {
 });
 
 //edit products
-router.patch('/:productId', (req, res) => {
+router.patch('/:productId', checkAuth, (req, res) => {
     const ID = req.params.productId;
 
     const body = _.pick(req.body, ['name', 'price', 'imgUrl']);
@@ -123,7 +128,7 @@ router.patch('/:productId', (req, res) => {
     });
 });
 
-router.delete('/:productId', (req, res) => {
+router.delete('/:productId', checkAuth, (req, res) => {
     const ID = req.params.productId;
     
     Product.findByIdAndRemove(ID).then(product => {

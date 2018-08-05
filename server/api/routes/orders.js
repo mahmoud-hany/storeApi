@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const checkAuth = require('../middleware/check-auth');
 
 const Order = require('../models/order');
 const { Product } = require('../models/product');
 
-router.post('/', (req, res) => {
+router.post('/', checkAuth, (req, res) => {
     
     Product.findById(req.body.productId)
         .then(product => {
@@ -33,7 +34,7 @@ router.post('/', (req, res) => {
     });
 });
 
-router.get('/', (req, res) => {
+router.get('/', checkAuth, (req, res) => {
     Order.find()
         .select('_id product quantity')
         .populate('product', 'name') // we select what we need from the attached product by its id
@@ -58,7 +59,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', checkAuth, (req, res) => {
     const ID = req.params.id;
 
     Order.findById(ID)
@@ -78,7 +79,7 @@ router.get('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', checkAuth, (req, res) => {
     const ID = req.params.id;
 
     Order.findByIdAndRemove(ID)
