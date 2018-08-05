@@ -3,20 +3,49 @@ const router = express.Router();
 
 const _ = require('lodash');  
 
+const multer = require('multer'); //Handle uploading Images 
+const storage = multer.diskStorage({ // storage config
+    destination: function (req, file, cb) {
+        cb(null, './server/uploads/'); // folder in which files will be stored.
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname)
+    }
+});
+const fileFilter = (req, file, cb) => {
+    if ( file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+        cb(null, true); //allow [upload]
+    } else {
+        cb(null, false); //not allowed [Don't upload]
+    }
+};
+const upload = multer({
+    storage,
+    limits: { // 3 mega bytes is maximum
+        fileSize: 1024*1024*3
+    },
+    fileFilter
+});
+
 const { Product } = require('../models/product');
 
 // create products
-router.post('/', (req, res) => {
+router.post('/', upload.single('imgUrl'), (req, res) => {
+
+    console.log(req.file); // chek this to see what Data i need to edit or pick
 
     const newProduct = new Product({
         name: req.body.name,
-        price: req.body.price
+        price: req.body.price,
+        imgUrl: `http://localhost:3000/${req.file.path.replace(/\\/g, "/")}` // to remove \\ from 
     });
 
     newProduct.save().then(one => {
         res.send(one);
+
     }).catch(err => {
         res.status(400).send(err);
+
     });
 
 });
@@ -32,6 +61,7 @@ router.get('/', (req, res) => {
                     _id: one._id,
                     name: one.name,
                     price: one.price,
+                    imgUrl: one.imgUrl,
                     request: {
                         type: 'GET',
                         url: `http://localhost:3000/products/${one._id}`
@@ -50,18 +80,17 @@ router.get('/', (req, res) => {
 router.get('/:productId', (req, res) => {
     const ID = req.params.productId;
 
-    Product.findById(ID).then(product => {
-        if (!product) {
-            return res.status(404).json();
-        }
-        res.json({
-            product: {
-                _id: product._id,
-                name: product.name,
-                price: product.price  
-            },
-            status: "OK"
-        });
+    Product.findById(ID)
+        .select('_id name price imgUrl')
+        .then(product => {
+            if (!product) {
+                return res.status(404).json();
+            }
+
+            res.json({
+                product,
+                status: "OK"
+            });
     }).catch(err => {
         res.status(400).json({
             message: 'invalid id',
@@ -75,17 +104,20 @@ router.get('/:productId', (req, res) => {
 router.patch('/:productId', (req, res) => {
     const ID = req.params.productId;
 
-    const body = _.pick(req.body, ['name', 'price']);
+    const body = _.pick(req.body, ['name', 'price', 'imgUrl']);
 
-    Product.findByIdAndUpdate(ID, {$set: body}, {new: true}).select('_id name price').then(updatedProduct => {
-        if(!updatedProduct){
-            return res.status(404).json();
-        }
-        res.json({
-            message: 'Product Updated successfuly',
-            updatedProduct,
-            status: "OK"
-        });
+    Product.findByIdAndUpdate(ID, {$set: body}, {new: true})
+        .select('_id name price imgUrl')
+        .then(updatedProduct => {
+            if(!updatedProduct){
+                return res.status(404).json();
+            }
+
+            res.json({
+                message: 'Product Updated successfuly',
+                updatedProduct,
+                status: "OK"
+            });
     }).catch(err => {
         res.status(400).json(err);
     });
@@ -94,7 +126,7 @@ router.patch('/:productId', (req, res) => {
 router.delete('/:productId', (req, res) => {
     const ID = req.params.productId;
     
-    Product.findByIdAndRemove(ID).select('_id name price').then(product => {
+    Product.findByIdAndRemove(ID).then(product => {
         if (!product) {
             return res.status(404).json();
         }
@@ -113,4 +145,3 @@ router.delete('/:productId', (req, res) => {
 });
 
 module.exports = router;
-//   / is refer to products

@@ -17,9 +17,12 @@ const port = process.env.PORT || 3000;
 const productRoutes = require('./api/routes/products');
 const orderRoutes = require('./api/routes/orders');
 
+//C:\Users\Mahmoud\Desktop\node-api\server\uploads\2018-08-05T08-15-22.924ZviewProduct.png
+
 
 //handle un defined routes [errors]
 app.use(morgan('dev'));
+app.use('/server/uploads', express.static('server/uploads'));
 app.use(bodyParser.json());
 /*
     Now body parser is included in express by default
@@ -51,16 +54,6 @@ app.use((req, res, next) => {
 
     next(error);
 });
-
-// app.use((err, req, res, next) => {
-//     res.status(err.status || 500);
-
-//     res.json({
-//         error: {
-//             message: 'sdfsadfdsf'
-//         }
-//     });
-// });
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
