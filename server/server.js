@@ -16,6 +16,7 @@ const port = process.env.PORT || 3000;
 // Routes
 const productRoutes = require('./api/routes/products');
 const orderRoutes = require('./api/routes/orders');
+const userRoutes = require('./api/routes/users');
 
 //C:\Users\Mahmoud\Desktop\node-api\server\uploads\2018-08-05T08-15-22.924ZviewProduct.png
 
@@ -46,6 +47,7 @@ app.use((req, res, next) => {
 //Routes which should handle request
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/authentication', userRoutes);
 
 //handle errors
 app.use((req, res, next) => {
